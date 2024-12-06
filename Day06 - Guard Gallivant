@@ -4,37 +4,27 @@
 #include <sstream>
 #include <algorithm>
 #include <cmath>
-#include <unordered_set>
-#include <unordered_map>
+#include <set>
+#include <map>
 
-// From: https://stackoverflow.com/questions/15160889/how-can-i-make-an-unordered-set-of-pairs-of-integers-in-c
-namespace std {
-template <> struct hash<std::pair<int, int>> {
-    inline size_t operator()(const std::pair<int, int> &v) const {
-        std::hash<int> int_hasher;
-        return int_hasher(v.first) ^ int_hasher(v.second);
-    }
-};
-}
-
-int getVisited(int x, int y, int M, int N, std::unordered_set<std::pair<int, int>> &grids, std::unordered_set<std::pair<int, int>> &visited) {
+int getVisited(int x, int y, int M, int N, std::set<std::pair<int, int>> &grids, std::set<std::pair<int, int>> &visited) {
     int dir = 0;
     int vxs[] = {-1, 0, 1, 0};
     int vys[] = {0, 1, 0, -1};
     
-    std::unordered_map<std::pair<int, int>, int> visited_with_dir;
+    std::map<std::pair<int, int>, int> visited_with_dir;
     
     while (x >=0 && x < M && y >= 0 && y < N) {
         visited.emplace(x, y);
-        if ((1 << dir) & visited_with_dir[{x, y}]) {
+        if ((1 << dir) & visited_with_dir[std::make_pair(x, y)]) {
             return -1;
         }
-        visited_with_dir[{x, y}] |= (1 << dir);
+        visited_with_dir[std::make_pair(x, y)] |= (1 << dir);
         
         int nx = x + vxs[dir];
         int ny = y + vys[dir];
         
-        if (grids.count({nx, ny})) {
+        if (grids.count(std::make_pair(nx, ny))) {
             dir = (dir + 1) % 4;
         } else {
             x = nx;
@@ -46,7 +36,7 @@ int getVisited(int x, int y, int M, int N, std::unordered_set<std::pair<int, int
 }
 
 int main() {
-    std::unordered_set<std::pair<int, int>> grids;
+    std::set<std::pair<int, int>> grids;
     
     int M = 0;
     int N = 0;
@@ -69,27 +59,27 @@ int main() {
         
         M += 1;
     }
-    std::unordered_set<std::pair<int, int>> visited;
+    std::set<std::pair<int, int>> visited;
     int ans1 = getVisited(x, y, M, N, grids, visited);
     int ans2 = 0;
     
     for (auto p : visited) {
         int i = p.first;
         int j = p.second;
-        if (grids.count({i, j})) {
+        if (grids.count(std::make_pair(i, j))) {
             continue;
         }
         if (i == x && j == y) {
             continue;
         }
-        std::unordered_set<std::pair<int, int>> visited;
+        std::set<std::pair<int, int>> visited;
         grids.emplace(i, j);
         if (getVisited(x, y, M, N, grids, visited) < 0) {
             ans2 += 1;
         }
         grids.erase({i, j});
     }
-
+    
     std::cout << ans1 << " " << ans2;
     
     return 0;
