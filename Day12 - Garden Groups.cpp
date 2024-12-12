@@ -12,9 +12,7 @@ std::set<std::pair<int, int>> visited;
 int vx[] = {1, 0, -1, 0};
 int vy[] = {0, 1, 0, -1};
 
-std::set<std::pair<std::pair<int, int>, int>> edges;
-
-void dfs(int x, int y, int &area, int &perimeter, char c) {
+void dfs(int x, int y, int &area, int &perimeter, int &sides, char c) {
     if (visited.count({x, y}) != 0) {
         return;
     }
@@ -25,11 +23,16 @@ void dfs(int x, int y, int &area, int &perimeter, char c) {
         int nx = x + vx[d];
         int ny = y + vy[d];
         if (map[{nx, ny}] != c) {
+            int nd = (d+1)%4;
+            if (map[{x+vx[nd], y+vy[nd]}] != c) {
+                sides += 1;
+            } else if (map[{nx+vx[nd], ny+vy[nd]}] == c) {
+                sides += 1;
+            }
             perimeter += 1;
-            edges.emplace(std::make_pair(x, y), d);
             continue;
         }
-        dfs(nx, ny, area, perimeter, c);
+        dfs(nx, ny, area, perimeter, sides, c);
     }
 }
 
@@ -45,46 +48,16 @@ int main() {
         }
         i++;
     }
-    
-    int ans1 = 0;
-    int ans2 = 0;
+
+    int ans1 = 0, ans2 = 0;
     
     for (int x = 0; x < i; x++) {
         for (int y = 0; y < j; y++) {
             if (visited.count({x, y}) == 0) {
-                int area = 0, perimeter = 0;
-                edges = {};
-                dfs(x, y, area, perimeter, map[{x, y}]);
+                int area = 0, perimeter = 0, sides = 0;
+                dfs(x, y, area, perimeter, sides, map[{x, y}]);
                 ans1 += area * perimeter;
-                int sides = 0;
-                while (!edges.empty()) {
-
-                    auto edge = edges.begin();
-                    auto loc = edge->first;
-                    int d = edge->second;
-
-                    for (int t = 0;; t++) {
-                        int nd = (d+1)%4;
-                        std::pair<int, int> nloc = {loc.first + t*vx[nd], loc.second + t*vy[nd]};
-                        if (edges.count({nloc, d}) != 0) {
-                            edges.erase({nloc, d});
-                        } else {
-                            break;
-                        }
-                    }
-                    for (int t = 1;; t++) {
-                        int nd = (d-1)%4;
-                        std::pair<int, int> nloc = {loc.first + t*vx[nd], loc.second + t*vy[nd]};
-                        if (edges.count({nloc, d}) != 0) {
-                            edges.erase({nloc, d});
-                        } else {
-                            break;
-                        }
-                    }
-                    sides += 1;
-                }
-
-                ans2 += sides * area;
+                ans2 += area * sides;
             }
         }
     }
