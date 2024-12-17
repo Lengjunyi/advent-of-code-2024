@@ -1,0 +1,132 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <cmath>
+#include <map>
+#include <set>
+
+int main() {
+    std::vector<int> registers;
+    std::vector<int> instructions;
+    int ip = 0;
+    
+    std::string s;
+    for (int i = 0; i < 3; i++) {
+        getline(std::cin, s);
+        std::stringstream strm(s);
+        int v;
+        strm.ignore(100, ':');
+        strm >> v;
+        std::cout << v << std::endl;
+        registers.push_back(v);
+    }
+    
+    getline(std::cin, s);
+    getline(std::cin, s);
+    std::stringstream strm(s);
+    strm.ignore(100, ':');
+    int ins;
+    while (strm >> ins) {
+        instructions.push_back(ins);
+        std::cout << ins;
+        strm.ignore(100, ',');
+    }
+    std::cout << std::endl;
+    
+    int size = instructions.size();
+    while (ip + 1 < size) {
+        if (ip == 0)
+        std::cout<<"start:";
+        int literal_operand = instructions[ip+1];
+        int combo_operand = literal_operand;
+        if (combo_operand >= 4) {
+            // if (combo_operand == 7) {
+            //     std::cout << "err";
+            //     return -1;
+            // }
+            combo_operand = registers[combo_operand - 4];
+        }
+        int nb, nc;
+        switch (instructions[ip]) {
+            case 0:
+                for (int k = 0; k < combo_operand; k++) {
+                    registers[0] /= 2;
+                }
+                break;
+            case 1:
+                registers[1] ^= literal_operand;
+                break;
+            case 2:
+                registers[1] = combo_operand % 8;
+                break;
+            case 3:
+                if (registers[0] != 0) {
+                    ip = literal_operand - 2;
+                }
+                break;
+            case 4:
+                registers[1] = registers[1] ^ registers[2];
+                break;
+            case 5:
+                std::cout<<combo_operand % 8<<",";
+                break;
+            case 6:
+                nb = registers[0];
+                for (int k = 0; k < combo_operand; k++) {
+                    nb /= 2;
+                }
+                registers[1] = nb;
+                break;
+            case 7:
+                nc = registers[0];
+                for (int k = 0; k < combo_operand; k++) {
+                    nc /= 2;
+                }
+                registers[2] = nc;
+                break;
+        }
+        // std::cout << registers[0] << " " << registers[1] << " " <<registers[2] << std::endl;
+        ip += 2;
+    }
+    
+    
+    long N = 0;
+    int ns = 0;
+    
+    int t = 0;
+    
+    int i = instructions.size()-1;
+    for (;i>=0;i--) {
+        if (t++ > 1000) {
+            break;
+        }
+        bool success = false;
+        long n;
+        for (n = ns; n < 8; n++) {
+            long A, B, C;
+            B = n;
+            B ^= 1;
+            C = ((N << 3) + n) >> B;
+            B ^= 5;
+            B ^= C;
+            if (B % 8 == instructions[i]) {
+                success = true;
+                N = (N << 3) + n;
+                break;
+            }
+        }
+        if (success) {
+            ns = 0;
+            std::cout << "found:("<<i<<","<<n<<","<<N<<")"<<std::endl;
+        }
+        if (!success) {
+            ns = N % 8 + 1;
+            i+=2;
+            N >>= 3;
+            std::cout << "not found, going back("<<i-1<<","<<ns<<","<<N<<")"<<std::endl;
+        }
+    }
+    std::cout << N;
+}
