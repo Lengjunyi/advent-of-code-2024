@@ -31,8 +31,8 @@ int main() {
 					code += c - '0';
 				}
 			}
-            
-            std::string move1;
+			
+			std::string move1;
 			if (cur >= 0 || next % 3 != 0) {
 				int now = cur;
 				std::string curMove;
